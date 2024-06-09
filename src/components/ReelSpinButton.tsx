@@ -1,28 +1,64 @@
 import React from "react";
 
+import BlankLogo from '../images/blank.png';
+import ZeroLogo from '../images/zero.png';
+import OneLogo from '../images/one.png';
+import TwoLogo from '../images/two.png';
+import ThreeLogo from '../images/three.png';
+import FourLogo from '../images/four.png';
+import FiveLogo from '../images/five.png';
+import SixLogo from '../images/six.png';
+import SevenLogo from '../images/seven.png';
+import EightLogo from '../images/eight.png';
+import NineLogo from '../images/nine.png';
+
 type Props = {
     ids: Array<string>;
 }
 
 const ReelSpinButton: React.FC<Props> = ({ ids }) => {
+    const logos = [
+        ZeroLogo,
+        OneLogo,
+        TwoLogo,
+        ThreeLogo,
+        FourLogo,
+        FiveLogo,
+        SixLogo,
+        SevenLogo,
+        EightLogo,
+        NineLogo
+    ];
+
     const min = 0;
-    const max = 9;
+    const max = logos.length - 1;
 
     function generateRadomNumber() {
         return Math.ceil(Math.random() * max);
     }
 
-    function setElement(id: string, value: number) {
-        let display = document.getElementById(id) as HTMLElement;
-        display.innerText = value.toString();
+    function pickLogo(image: HTMLImageElement, value: number) {
+        if (value < 0 || value > logos.length) {
+            image.src = BlankLogo;
+            return;
+        }
+
+        image.src = logos[value];
+    }
+
+    function setImage(id: string, value: number) {
+        pickLogo(
+            document.getElementById(id) as HTMLImageElement,
+            value
+        );
     }
 
     function setReel(id: string) {
         const value = generateRadomNumber();
 
-        setElement(id + 1, value === min ? max : value - 1);
-        setElement(id + 2, value);
-        setElement(id + 3, value === max ? min : value + 1);
+        setImage(id + 1, value === min ? max : value - 1);
+        setImage(id + 2, value);
+        setImage(id + 3, value === max ? min : value + 1);
     }
 
     function spin() {
