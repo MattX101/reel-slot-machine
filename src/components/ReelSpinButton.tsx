@@ -34,6 +34,12 @@ const ReelSpinButton: React.FC<Props> = ({ ids }) => {
     const min = 0;
     const max = logos.length - 1;
 
+    let isSpinning = false;
+
+    let leftIndex = -1;
+    let middleIndex = -1;
+    let rightIndex = -1;
+
     /** Returns an integer number between 0 and max, used to set the src of the slot images*/
     function generateRadomNumber() {
         // An integer number between 0 and max is needed for...
@@ -65,26 +71,66 @@ const ReelSpinButton: React.FC<Props> = ({ ids }) => {
         image.src = pickLogo(index);
     }
 
+    /** Increments or Deincrements the index in order to play the sping animation */
+    function iterate(index: number, flip: boolean) {
+        if (flip) {
+            index--;
+            if (index === min - 1)
+                index = max;
+        }
+        else {
+            index++;
+            if (index === max + 1)
+                index = 0;
+        }
+
+        return index
+    }
+
     /** Sets display column */
-    function setColumn(id: string) {
+    function setColumn(id: string, index: number, flip: boolean) {
         // RNG number used to set the image logos
-        const index = generateRadomNumber();
+        if (index === -1)
+            index = generateRadomNumber();
 
         setImage(id + 1, index === min ? max : index - 1);
         setImage(id + 2, index);
         setImage(id + 3, index === max ? min : index + 1);
+
+        return iterate(index, flip);
     }
 
-    /** Plays reel slot machine */
-    function spin() {
-        setColumn(ids[0]);
-        setColumn(ids[1]);
-        setColumn(ids[2]);
+    /** Spins a reel slot machine column */
+    function spin(index: number, id: string, flip: boolean) {
+        index = setColumn(id, index, flip);
+    }
+
+    function endTimer(spinAnimation: NodeJS.Timer, stillSpinning: boolean) {
+        isSpinning = stillSpinning;
+        window.clearInterval(spinAnimation)
+    }
+
+    function startTimer() {
+        if (isSpinning)
+            return;
+
+        isSpinning = true;
+        
+        // Call the spin function every x amount of milleseconds
+        // Main component for the spin animation to play out
+        let spinLeftAnimation = setInterval(spin, 150, leftIndex, ids[0], false);
+        let spinMiddleAnimation = setInterval(spin, 100, middleIndex, ids[1], true);
+        let spinRightAnimation = setInterval(spin, 150, rightIndex, ids[2], false);
+
+        // After x amount of time the timer is stopped
+        setTimeout(endTimer, 10000, spinLeftAnimation, true);
+        setTimeout(endTimer, 12500, spinMiddleAnimation, true);
+        setTimeout(endTimer, 15000, spinRightAnimation, false);
     }
 
     return (
         <div className='bg-slate-400 p-2.5p grid place-items-center rounded-b-xl'>
-            <button onClick={() => spin()} className="text-2xl font-bold bg-red-600 rounded-md text-slate-800 p-1p px-5p hover:bg-red-300">
+            <button onClick={() => startTimer()} className="text-2xl font-bold bg-red-600 rounded-md text-slate-800 p-1p px-5p hover:bg-red-300">
                 Spin
             </button>
         </div>
