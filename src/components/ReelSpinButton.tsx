@@ -89,25 +89,43 @@ const ReelSpinButton: React.FC<Props> = ({ ids }) => {
 
     /** Sets display column */
     function setColumn(id: string, index: number, flip: boolean) {
-        // RNG number used to set the image logos
-        if (index === -1)
-            index = generateRadomNumber();
+        // RNG index used to set the image logos
+        // If index already generate then iterate
+        // For the index to be determined not generated it must equal -1
+        index = index == -1 ? index = generateRadomNumber() : iterate(index, flip);
 
         setImage(id + 1, index === min ? max : index - 1);
         setImage(id + 2, index);
         setImage(id + 3, index === max ? min : index + 1);
 
-        return iterate(index, flip);
+        return index;
     }
 
-    /** Spins a reel slot machine column */
-    function spin(index: number, id: string, flip: boolean) {
-        index = setColumn(id, index, flip);
+    /** Spins the left reel slot machine column */
+    function leftSpin(id: string) {
+        leftIndex = setColumn(id, leftIndex, false);
+    }
+    /** Spins the middle reel slot machine column */
+    function middleSpin(id: string) {
+        middleIndex = setColumn(id, middleIndex, true);
+    }
+    /** Spins the right reel slot machine column */
+    function rightSpin(id: string) {
+        rightIndex = setColumn(id, rightIndex, false);
     }
 
     function endTimer(spinAnimation: NodeJS.Timer, stillSpinning: boolean) {
         isSpinning = stillSpinning;
         window.clearInterval(spinAnimation)
+
+        // Game must finish before checking if player has won
+        if (isSpinning === false) {
+            // All three numbers must be equal to win, else not is displayed
+            if (leftIndex == middleIndex && leftIndex == rightIndex) {
+                var winText = document.getElementById('win') as HTMLElement;
+                winText.innerHTML = "You Win!";
+            }
+        }
     }
 
     function startTimer() {
@@ -115,12 +133,12 @@ const ReelSpinButton: React.FC<Props> = ({ ids }) => {
             return;
 
         isSpinning = true;
-        
+
         // Call the spin function every x amount of milleseconds
         // Main component for the spin animation to play out
-        let spinLeftAnimation = setInterval(spin, 150, leftIndex, ids[0], false);
-        let spinMiddleAnimation = setInterval(spin, 100, middleIndex, ids[1], true);
-        let spinRightAnimation = setInterval(spin, 150, rightIndex, ids[2], false);
+        let spinLeftAnimation = setInterval(leftSpin, 150, ids[0]);
+        let spinMiddleAnimation = setInterval(middleSpin, 100, ids[1]);
+        let spinRightAnimation = setInterval(rightSpin, 150, ids[2]);
 
         // After x amount of time the timer is stopped
         setTimeout(endTimer, 10000, spinLeftAnimation, true);
